@@ -73,12 +73,18 @@ class OrbitServiceProvider extends ServiceProvider
         }
 
         if (! Schema::connection('orbit_meta')->hasTable('_orbit_meta')) {
-            Schema::connection('orbit_meta')->create('_orbit_meta', function (Blueprint $table) {
-                $table->id();
-                $table->string('orbital_type')->index();
-                $table->string('orbital_key')->index();
-                $table->string('file_path_read_from')->nullable();
-            });
+            try
+            {
+                Schema::connection('orbit_meta')->create('_orbit_meta', function (Blueprint $table) {
+                    $table->id();
+                    $table->string('orbital_type')->index();
+                    $table->string('orbital_key')->index();
+                    $table->string('file_path_read_from')->nullable();
+                });
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Attempt catching odd case where hasTable() is false but it fails due to actually existing
+                OrbitMeta::truncate();
+            }
         } else {
             OrbitMeta::truncate();
         }
